@@ -1,0 +1,115 @@
+# Knowledge Base Index
+# Machine-readable registry for KB domains
+#
+# CONVENÇÃO DE IDIOMA: a prosa explicativa das KBs (quando usar, por quê, descrições)
+# é escrita em PORTUGUÊS. Código, nomes de API e keywords técnicas ficam em inglês por
+# natureza (streaming table, ROW_NUMBER, materialized view…). Aplicada por /create-kb,
+# /distill e /contribute. Acervo legado é misto: converter oportunisticamente ao editar.
+
+version: "1.0"
+last_updated: "2026-08-06"
+
+# File Size Limits (SINGLE SOURCE OF TRUTH)
+limits:
+  quick_reference: 100
+  concept: 150
+  pattern: 200
+  spec: null
+
+# Templates
+templates:
+  - name: concept
+    path: _templates/concept.md.template
+  - name: pattern
+    path: _templates/pattern.md.template
+  - name: index
+    path: _templates/index.md.template
+  - name: quick-reference
+    path: _templates/quick-reference.md.template
+  - name: spec
+    path: _templates/spec.yaml.template
+  - name: test-case
+    path: _templates/test-case.json.template
+  - name: domain-manifest
+    path: _templates/domain-manifest.yaml.template
+
+# Domain Registry — add entries here via /create-kb
+domains:
+  agentes-llm:
+    name: Agentes LLM
+    description: Agente com function calling sem framework — loop explícito, tools tipadas, grounding determinístico, avaliação offline + benchmark real
+    path: agentes-llm/
+    entry_points: { index: index.md, quick_reference: quick-reference.md }
+    concepts:
+      - { name: grounding-deterministico, path: concepts/grounding-deterministico.md, confidence: 0.95 }
+      - { name: system-prompt-como-politica, path: concepts/system-prompt-como-politica.md, confidence: 0.9 }
+    patterns:
+      - { name: loop-tool-calling-explicito, path: patterns/loop-tool-calling-explicito.md }
+      - { name: tools-pydantic-registry, path: patterns/tools-pydantic-registry.md }
+      - { name: avaliacao-offline-fake-client, path: patterns/avaliacao-offline-fake-client.md }
+      - { name: benchmark-comportamental-yaml, path: patterns/benchmark-comportamental-yaml.md }
+      - { name: resolucao-nome-para-id, path: patterns/resolucao-nome-para-id.md }
+
+  engenharia-de-prompts:
+    name: Engenharia de Prompts
+    description: Estrutura de system prompts, few-shot/chain-of-thought/structured output, gerenciamento de janela de contexto e histórico, regressão de prompts, mitigação de prompt injection — agnóstico de provider
+    path: engenharia-de-prompts/
+    entry_points: { index: index.md, quick_reference: quick-reference.md }
+    concepts:
+      - { name: anatomia-do-system-prompt, path: concepts/anatomia-do-system-prompt.md, confidence: 0.95 }
+      - { name: tecnicas-fundamentais-de-prompting, path: concepts/tecnicas-fundamentais-de-prompting.md, confidence: 0.9 }
+      - { name: janela-de-contexto-e-gerenciamento-de-historico, path: concepts/janela-de-contexto-e-gerenciamento-de-historico.md, confidence: 0.95 }
+      - { name: ambiguidade-e-overfitting-em-poucos-exemplos, path: concepts/ambiguidade-e-overfitting-em-poucos-exemplos.md, confidence: 0.85 }
+    patterns:
+      - { name: structured-output-json-schema, path: patterns/structured-output-json-schema.md }
+      - { name: compactacao-de-historico-de-conversa, path: patterns/compactacao-de-historico-de-conversa.md }
+      - { name: suite-de-regressao-de-prompts, path: patterns/suite-de-regressao-de-prompts.md }
+      - { name: mitigacao-de-prompt-injection, path: patterns/mitigacao-de-prompt-injection.md }
+
+  padroes-rag:
+    name: Padrões RAG
+    description: Retrieval-Augmented Generation — chunking, embeddings e busca densa/esparsa/híbrida, re-ranking, injeção de contexto no prompt, avaliação de qualidade (retrieval + faithfulness), armadilhas comuns — agnóstico de provider e vector DB
+    path: padroes-rag/
+    entry_points: { index: index.md, quick_reference: quick-reference.md }
+    concepts:
+      - { name: estrategias-de-chunking, path: concepts/estrategias-de-chunking.md, confidence: 0.9 }
+      - { name: retrieval-denso-esparso-e-hibrido, path: concepts/retrieval-denso-esparso-e-hibrido.md, confidence: 0.9 }
+      - { name: avaliacao-de-qualidade-de-rag, path: concepts/avaliacao-de-qualidade-de-rag.md, confidence: 0.9 }
+      - { name: armadilhas-comuns-em-rag, path: concepts/armadilhas-comuns-em-rag.md, confidence: 0.9 }
+    patterns:
+      - { name: busca-hibrida-com-fusao-rrf, path: patterns/busca-hibrida-com-fusao-rrf.md }
+      - { name: re-ranking-com-cross-encoder, path: patterns/re-ranking-com-cross-encoder.md }
+      - { name: injecao-de-contexto-no-prompt, path: patterns/injecao-de-contexto-no-prompt.md }
+      - { name: avaliacao-automatizada-com-ragas, path: patterns/avaliacao-automatizada-com-ragas.md }
+
+  rest-api-design:
+    name: REST API Design
+    description: Design de APIs REST agnóstico de framework — modelagem de recursos e verbos HTTP, status codes e formato de erro (RFC 9457 Problem Details), versionamento, paginação/filtragem/ordenação, validação de contrato e design de payloads
+    path: rest-api-design/
+    entry_points: { index: index.md, quick_reference: quick-reference.md }
+    concepts:
+      - { name: modelagem-de-recursos-e-verbos-http, path: concepts/modelagem-de-recursos-e-verbos-http.md, confidence: 0.95 }
+      - { name: codigos-de-status-e-formato-de-erro, path: concepts/codigos-de-status-e-formato-de-erro.md, confidence: 0.95 }
+      - { name: versionamento-de-api, path: concepts/versionamento-de-api.md, confidence: 0.9 }
+      - { name: design-de-payloads-e-convencoes, path: concepts/design-de-payloads-e-convencoes.md, confidence: 0.9 }
+    patterns:
+      - { name: paginacao-cursor-e-offset, path: patterns/paginacao-cursor-e-offset.md }
+      - { name: problem-details-rfc9457, path: patterns/problem-details-rfc9457.md }
+      - { name: validacao-de-contrato-com-schema, path: patterns/validacao-de-contrato-com-schema.md }
+      - { name: estrategia-de-deprecacao-e-breaking-change, path: patterns/estrategia-de-deprecacao-e-breaking-change.md }
+
+  autenticacao:
+    name: Autenticação
+    description: Autenticação e autorização em APIs web, agnóstico de framework — JWT (estrutura, assinatura, expiração, refresh tokens), OAuth2/OpenID Connect (authorization code + PKCE, client credentials), API keys vs. tokens de sessão vs. JWT, RBAC vs. ABAC/scopes, hashing de senha (Argon2id), armadilhas comuns (localStorage vs. cookie httpOnly, CSRF, replay attacks)
+    path: autenticacao/
+    entry_points: { index: index.md, quick_reference: quick-reference.md }
+    concepts:
+      - { name: jwt-estrutura-e-ciclo-de-vida, path: concepts/jwt-estrutura-e-ciclo-de-vida.md, confidence: 0.95 }
+      - { name: oauth2-e-openid-connect, path: concepts/oauth2-e-openid-connect.md, confidence: 0.95 }
+      - { name: metodos-de-autenticacao-trade-offs, path: concepts/metodos-de-autenticacao-trade-offs.md, confidence: 0.9 }
+      - { name: autorizacao-rbac-vs-abac, path: concepts/autorizacao-rbac-vs-abac.md, confidence: 0.9 }
+    patterns:
+      - { name: hashing-de-senha-com-argon2, path: patterns/hashing-de-senha-com-argon2.md }
+      - { name: refresh-token-rotation, path: patterns/refresh-token-rotation.md }
+      - { name: armazenamento-seguro-de-token-no-cliente, path: patterns/armazenamento-seguro-de-token-no-cliente.md }
+      - { name: authorization-code-flow-com-pkce, path: patterns/authorization-code-flow-com-pkce.md }
