@@ -70,8 +70,8 @@
 | Categoria | Agentes | Quando usar |
 |-----------|---------|-------------|
 | **Workflow** | brainstorm, define, design, build, ship, iterate | Construir features com SDD |
-| **Qualidade** | code-reviewer, code-documenter, code-cleaner, python-developer, test-generator | Revisar e melhorar código |
-| **AI/ML** | llm-specialist, genai-architect, ai-prompt-specialist, ai-data-engineer | Prompts, RAG, arquitetura do agente de chat |
+| **Qualidade** | code-reviewer, code-documenter, python-developer | Revisar e melhorar código |
+| **AI/ML** | llm-specialist | Prompts, RAG, arquitetura do agente de chat |
 | **Exploração** | codebase-explorer, kb-architect | Explorar repositório, criar KBs |
 | **Comunicação** | adaptive-explainer, meeting-analyst, the-planner | Explicações, planejamento |
 | **Domínio** | ai-developer, api-developer, agent-travel-expert | Tarefas específicas do projeto |

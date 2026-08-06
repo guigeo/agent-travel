@@ -19,13 +19,8 @@ components:
     - the-planner
     - code-reviewer
     - code-documenter
-    - code-cleaner
     - python-developer
-    - test-generator
     - llm-specialist
-    - genai-architect
-    - ai-prompt-specialist
-    - ai-data-engineer
   kbs:
     - agentes-llm
     - engenharia-de-prompts
