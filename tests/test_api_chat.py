@@ -54,8 +54,13 @@ def test_happy_path_planeja_viagem_sem_mencionar_milhas(monkeypatch):
     assert response.status_code == 200
     body = response.json()
     assert "milhas" not in body["texto"].lower()
-    # última tool com ids não-vazios foi buscar_hospedagem — grounding reflete essa chamada
-    assert body["dados"] == [{"id": "hosp-1", "resumo": "Hotel em GIG"}]
+    # cada tool chamada no turno vira seu próprio resultado — nenhuma é descartada
+    resultados_por_ferramenta = {r["ferramenta"]: r["dados"] for r in body["resultados"]}
+    assert resultados_por_ferramenta["buscar_voos"] == [{"id": "voo-1", "resumo": "GRU-GIG"}]
+    assert resultados_por_ferramenta["buscar_hospedagem"] == [
+        {"id": "hosp-1", "resumo": "Hotel em GIG"}
+    ]
+    assert resultados_por_ferramenta["calcular_orcamento"][0]["total_estimado"] == 800
 
 
 def test_limite_de_escopo_nao_finaliza_compra(monkeypatch):

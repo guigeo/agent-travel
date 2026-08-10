@@ -28,14 +28,15 @@ def test_resposta_direta_sem_tool(nova_sessao):
     client = FakeClient([texto("Olá!")])
     out = run_turn(client, nova_sessao, REGISTRY, "system", "oi")
     assert out.texto == "Olá!"
-    assert out.acao_ui is None
+    assert out.resultados == []
 
 
 def test_tool_call_gera_grounding(nova_sessao):
     client = FakeClient([tool_call("listar_opcoes", {"metrica": "total"}), texto("A opção é X.")])
     out = run_turn(client, nova_sessao, REGISTRY, "system", "quais opções?")
-    assert out.acao_ui == ["1"]
-    assert out.dados == [{"id": "1", "valor": 10}]
+    assert len(out.resultados) == 1
+    assert out.resultados[0].ferramenta == "listar_opcoes"
+    assert out.resultados[0].dados == [{"id": "1", "valor": 10}]
 
 
 def test_autocorrecao_apos_erro_de_tool(nova_sessao):
@@ -47,7 +48,8 @@ def test_autocorrecao_apos_erro_de_tool(nova_sessao):
         ]
     )
     out = run_turn(client, nova_sessao, REGISTRY, "system", "quais opções?")
-    assert out.acao_ui == ["1"]
+    assert len(out.resultados) == 1
+    assert out.resultados[0].ferramenta == "listar_opcoes"
     assert any(
         m.get("role") == "tool" and "erro" in m["content"]
         for r in client.requests

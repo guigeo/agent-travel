@@ -4,17 +4,19 @@ import remarkGfm from "remark-gfm";
 import { SendHorizontal, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 
-import { ApiRequestError, type AgentResponse } from "@/lib/api";
+import { ApiRequestError, type AgentResponse, type ResultadoFerramenta } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { ResultRenderer } from "@/components/results/result-renderer";
 
 interface Message {
   id: string;
   role: "user" | "assistant";
   text: string;
+  resultados?: ResultadoFerramenta[];
 }
 
 interface ChatPanelProps {
@@ -61,7 +63,15 @@ export function ChatPanel({
 
     try {
       const response = await onSend(sessionId, trimmed);
-      setMessages((prev) => [...prev, { id: newId(), role: "assistant", text: response.texto }]);
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: newId(),
+          role: "assistant",
+          text: response.texto,
+          resultados: response.resultados,
+        },
+      ]);
     } catch (err) {
       const message =
         err instanceof ApiRequestError
@@ -125,20 +135,30 @@ export function ChatPanel({
                   {message.role === "user" ? "V" : agentIcon}
                 </AvatarFallback>
               </Avatar>
-              <div
-                className={cn(
-                  "max-w-[80%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed",
-                  message.role === "user"
-                    ? "rounded-tr-sm bg-primary text-primary-foreground"
-                    : "rounded-tl-sm bg-muted",
-                )}
-              >
-                {message.role === "assistant" ? (
-                  <div className="prose prose-sm dark:prose-invert max-w-none prose-p:my-1.5 prose-ul:my-1.5 prose-ol:my-1.5">
-                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{message.text}</ReactMarkdown>
+              <div className={cn("flex max-w-[80%] flex-col gap-2", message.role === "user" && "items-end")}>
+                <div
+                  className={cn(
+                    "rounded-2xl px-4 py-2.5 text-sm leading-relaxed",
+                    message.role === "user"
+                      ? "rounded-tr-sm bg-primary text-primary-foreground"
+                      : "rounded-tl-sm bg-muted",
+                  )}
+                >
+                  {message.role === "assistant" ? (
+                    <div className="prose prose-sm dark:prose-invert max-w-none prose-p:my-1.5 prose-ul:my-1.5 prose-ol:my-1.5">
+                      <ReactMarkdown remarkPlugins={[remarkGfm]}>{message.text}</ReactMarkdown>
+                    </div>
+                  ) : (
+                    <p className="whitespace-pre-wrap">{message.text}</p>
+                  )}
+                </div>
+
+                {message.resultados && message.resultados.length > 0 && (
+                  <div className="flex w-full flex-col gap-2">
+                    {message.resultados.map((resultado, index) => (
+                      <ResultRenderer key={`${resultado.ferramenta}-${index}`} resultado={resultado} />
+                    ))}
                   </div>
-                ) : (
-                  <p className="whitespace-pre-wrap">{message.text}</p>
                 )}
               </div>
             </div>

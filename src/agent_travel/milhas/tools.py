@@ -45,4 +45,4 @@ def calcular_valor_ponto(args: CalcularValorPontoArgs) -> ToolResult:
         "valor_estimado_reais": round(valor_estimado_reais, 2),
         "valor_por_ponto_centavos": round(valor_por_ponto_centavos, 4),
     }
-    return ToolResult(payload=payload)
+    return ToolResult(payload=payload, ids=["valor-ponto"], rows=[payload])

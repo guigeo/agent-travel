@@ -20,4 +20,4 @@ def query(
     de viagem em `chat.py` (SessionStore próprio, sem session_id de viagem)."""
     session = _session_store.get(session_id)
     response = run_turn(client, session, MILES_TOOL_REGISTRY, MILES_SYSTEM_PROMPT, body.mensagem)
-    return MilesQueryResponse(texto=response.texto, acao_ui=response.acao_ui, dados=response.dados)
+    return MilesQueryResponse(texto=response.texto, resultados=response.resultados)

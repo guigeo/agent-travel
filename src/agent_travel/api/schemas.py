@@ -1,4 +1,11 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
+
+
+class ResultadoFerramentaSchema(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    ferramenta: str
+    dados: list[dict]
 
 
 class ChatRequest(BaseModel):
@@ -7,8 +14,7 @@ class ChatRequest(BaseModel):
 
 class ChatResponse(BaseModel):
     texto: str
-    acao_ui: list[str] | None = None
-    dados: list[dict] | None = None
+    resultados: list[ResultadoFerramentaSchema] = []
 
 
 class MilesQueryRequest(BaseModel):
@@ -17,5 +23,4 @@ class MilesQueryRequest(BaseModel):
 
 class MilesQueryResponse(BaseModel):
     texto: str
-    acao_ui: list[str] | None = None
-    dados: list[dict] | None = None
+    resultados: list[ResultadoFerramentaSchema] = []

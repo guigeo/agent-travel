@@ -1,9 +1,13 @@
 const API_BASE = import.meta.env.VITE_API_BASE ?? "http://localhost:8000";
 
+export interface ResultadoFerramenta {
+  ferramenta: string;
+  dados: Record<string, unknown>[];
+}
+
 export interface AgentResponse {
   texto: string;
-  acao_ui: string[] | null;
-  dados: Record<string, unknown>[] | null;
+  resultados: ResultadoFerramenta[];
 }
 
 export interface ProblemDetail {

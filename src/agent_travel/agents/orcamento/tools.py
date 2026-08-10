@@ -29,4 +29,4 @@ def calcular_orcamento(args: CalcularOrcamentoArgs) -> ToolResult:
         "orcamento_maximo": args.orcamento_maximo,
         "estourou_orcamento": estourou,
     }
-    return ToolResult(payload=payload)
+    return ToolResult(payload=payload, ids=["orcamento"], rows=[payload])

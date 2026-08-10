@@ -20,4 +20,4 @@ def send_message(
     response = run_turn(
         client, session, PLANNER_TOOL_REGISTRY, PLANNER_SYSTEM_PROMPT, body.mensagem
     )
-    return ChatResponse(texto=response.texto, acao_ui=response.acao_ui, dados=response.dados)
+    return ChatResponse(texto=response.texto, resultados=response.resultados)

@@ -13,10 +13,15 @@ MSG_LIMITE_ITERACOES = (
 
 
 @dataclass
+class ResultadoFerramenta:
+    ferramenta: str
+    dados: list[dict]
+
+
+@dataclass
 class Response:
     texto: str
-    acao_ui: list[str] | None
-    dados: list[dict] | None
+    resultados: list[ResultadoFerramenta]
 
 
 def run_turn(
@@ -29,7 +34,8 @@ def run_turn(
     Session, sem nenhum acoplamento entre os dois.
     """
     session.messages.append({"role": "user", "content": pergunta})
-    acao_ui, dados, erros = None, None, 0
+    resultados: list[ResultadoFerramenta] = []
+    erros = 0
 
     for _ in range(settings.max_tool_iters):
         resp = client.chat.completions.create(
@@ -42,7 +48,7 @@ def run_turn(
 
         if not msg.tool_calls:
             _trim(session)
-            return Response(texto=msg.content or "", acao_ui=acao_ui, dados=dados)
+            return Response(texto=msg.content or "", resultados=resultados)
 
         for call in msg.tool_calls:
             result = registry.execute_tool(call.function.name, call.function.arguments)
@@ -53,12 +59,16 @@ def run_turn(
                 erros += 1
                 if erros >= 2:
                     _trim(session)
-                    return Response(texto=MSG_ERRO_AMIGAVEL, acao_ui=acao_ui, dados=dados)
+                    return Response(texto=MSG_ERRO_AMIGAVEL, resultados=resultados)
             elif result.ids:
-                acao_ui, dados = result.ids, result.rows
+                # Acumula por ferramenta (não sobrescreve) — cada tool chamada no turno
+                # vira seu próprio card no frontend, em vez de só a última sobreviver.
+                resultados.append(
+                    ResultadoFerramenta(ferramenta=call.function.name, dados=result.rows)
+                )
 
     _trim(session)
-    return Response(texto=MSG_LIMITE_ITERACOES, acao_ui=acao_ui, dados=dados)
+    return Response(texto=MSG_LIMITE_ITERACOES, resultados=resultados)
 
 
 def _assistant_dict(msg: Any) -> dict:
