@@ -119,7 +119,7 @@ Adicione domínios a qualquer momento com `/create-kb "<dominio>"`.
 
 | Feature | Entregue em | Descrição |
 |---------|-------------|-----------|
-| — | — | — |
+| [MULTIAGENTE_VIAGENS](.claude/sdd/archive/MULTIAGENTE_VIAGENS/SHIPPED_2026-08-10.md) | 2026-08-10 | Orquestrador multiagente (voos, hospedagem, roteiro, orçamento) via API FastAPI + Agente de Milhas independente |
 
 ---
 

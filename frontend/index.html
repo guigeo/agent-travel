@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+<meta charset="utf-8" />
+<title>agent-travel</title>
+<style>
+  body { font-family: system-ui, sans-serif; max-width: 720px; margin: 2rem auto; padding: 0 1rem; }
+  h1 { font-size: 1.25rem; }
+  section { margin-bottom: 2rem; }
+  .log { border: 1px solid #ccc; border-radius: 8px; padding: 0.75rem; min-height: 200px;
+         max-height: 400px; overflow-y: auto; margin-bottom: 0.5rem; }
+  .msg { margin: 0.4rem 0; white-space: pre-wrap; }
+  .msg.user { font-weight: 600; }
+  .msg.assistant { color: #333; }
+  form { display: flex; gap: 0.5rem; }
+  input[type=text] { flex: 1; padding: 0.5rem; }
+  button { padding: 0.5rem 1rem; }
+</style>
+</head>
+<body>
+  <h1>agent-travel</h1>
+
+  <section>
+    <h2>Planejador de viagem</h2>
+    <div id="chat-log" class="log"></div>
+    <form id="chat-form">
+      <input id="chat-input" type="text" placeholder="Ex: quero ir de São Paulo ao Rio em 2026-09-10, orçamento R$1500" />
+      <button type="submit">Enviar</button>
+    </form>
+  </section>
+
+  <section>
+    <h2>Agente de Milhas <small>(independente do planejador)</small></h2>
+    <div id="miles-log" class="log"></div>
+    <form id="miles-form">
+      <input id="miles-input" type="text" placeholder="Ex: vale a pena trocar meus pontos Itaú agora?" />
+      <button type="submit">Enviar</button>
+    </form>
+  </section>
+
+  <script>
+    const API_BASE = "http://localhost:8000";
+    const chatSessionId = crypto.randomUUID();
+    const milesSessionId = crypto.randomUUID();
+
+    function appendMessage(logEl, role, text) {
+      const div = document.createElement("div");
+      div.className = `msg ${role}`;
+      div.textContent = (role === "user" ? "Você: " : "Assistente: ") + text;
+      logEl.appendChild(div);
+      logEl.scrollTop = logEl.scrollHeight;
+    }
+
+    function wireForm(formId, inputId, logId, path, sessionId) {
+      const form = document.getElementById(formId);
+      const input = document.getElementById(inputId);
+      const log = document.getElementById(logId);
+
+      form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const mensagem = input.value.trim();
+        if (!mensagem) return;
+        appendMessage(log, "user", mensagem);
+        input.value = "";
+
+        try {
+          const res = await fetch(`${API_BASE}${path}/${sessionId}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ mensagem }),
+          });
+          if (!res.ok) {
+            const problem = await res.json().catch(() => ({}));
+            appendMessage(log, "assistant", `Erro: ${problem.detail || res.statusText}`);
+            return;
+          }
+          const data = await res.json();
+          appendMessage(log, "assistant", data.texto);
+        } catch (err) {
+          appendMessage(log, "assistant", `Erro de conexão: ${err.message}`);
+        }
+      });
+    }
+
+    wireForm("chat-form", "chat-input", "chat-log", "/chat", chatSessionId);
+    wireForm("miles-form", "miles-input", "miles-log", "/miles/query", milesSessionId);
+  </script>
+</body>
+</html>

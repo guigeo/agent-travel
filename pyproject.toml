@@ -1,0 +1,38 @@
+[project]
+name = "agent-travel"
+version = "0.1.0"
+description = "Assistente multiagente de planejamento de viagens, com agente independente de milhas Itaú"
+readme = "README.md"
+authors = [
+    { name = "Guilherme Ramos", email = "uepa.pap@gmail.com" }
+]
+requires-python = ">=3.11"
+dependencies = [
+    "ddgs>=9.14.4",
+    "fastapi>=0.141.1",
+    "openai>=2.53.0",
+    "pydantic>=2.13.4",
+    "pydantic-settings>=2.14.2",
+    "uvicorn[standard]>=0.52.1",
+]
+
+[build-system]
+requires = ["uv_build>=0.10.9,<0.11.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+    "ruff>=0.16.1",
+]
+
+[tool.ruff]
+line-length = 100
+extend-exclude = [".claude"]  # não reformatar blocos de código Python dentro da KB/agents em Markdown
+
+[tool.ruff.lint]
+ignore = ["B008"]  # Depends(...) em default de argumento é o padrão idiomático do FastAPI
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
