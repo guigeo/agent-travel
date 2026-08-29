@@ -1,6 +1,6 @@
 # Instruções do Claude Code
 
-As instruções canônicas deste repositório estão mantidas no arquivo `AGENTS.md` da raiz do projeto.
+As instruções canônicas deste repositório estão mantidas no arquivo `AGENTS.md`.
 
 Antes de iniciar qualquer tarefa:
 
