@@ -1,11 +1,21 @@
+from collections.abc import Callable
+from typing import Any
+
 from agent_travel.web_search.client import WebSearchClient
+from agent_travel.web_search.extraction import ExtracaoVoo, ancora_preco, extrair
+from agent_travel.web_search.ranking import com_papel, selecionar_fontes
 
 
 class VoosBackend:
-    """Busca e normaliza opções de voos via WebSearchClient (sem API paga no MVP)."""
+    """Busca fontes de voos, prioriza agregadores/companhias e extrai o que o trecho diz."""
 
-    def __init__(self, search_client: WebSearchClient):
+    def __init__(
+        self,
+        search_client: WebSearchClient,
+        llm_factory: Callable[[], Any] | None = None,
+    ):
         self._search = search_client
+        self._llm_factory = llm_factory
 
     def buscar(
         self, origem: str, destino: str, data_ida: str, data_volta: str | None = None
@@ -13,14 +23,18 @@ class VoosBackend:
         query = f"passagem aérea {origem} para {destino} {data_ida} preço"
         if data_volta:
             query += f" volta {data_volta}"
-        hits = self._search.search(query, max_results=5)
+        hits = self._search.search(query, max_results=8)
         if not hits:
             raise ValueError(
                 f"Nenhum resultado encontrado para voos de {origem} a {destino} em {data_ida}."
             )
-        return [
-            {
-                "id": f"voo-{i}",
+        escolhidos = selecionar_fontes(hits, "voo", limite=2)
+        client = self._llm_factory() if self._llm_factory else None
+        rows: list[dict] = []
+        for index, (papel, hit) in enumerate(com_papel(escolhidos), start=1):
+            row = {
+                "id": f"voo-{index}",
+                "papel": papel,
                 "origem": origem,
                 "destino": destino,
                 "data_ida": data_ida,
@@ -28,6 +42,31 @@ class VoosBackend:
                 "resumo": hit.title,
                 "trecho": hit.snippet,
                 "fonte_url": hit.url,
+                "companhia": None,
+                "preco": None,
+                "moeda": None,
+                "horario": None,
+                "confianca": "baixa",
             }
-            for i, hit in enumerate(hits, start=1)
-        ]
+            if client is not None:
+                extra = extrair(
+                    client,
+                    ExtracaoVoo,
+                    hit.title,
+                    hit.snippet,
+                    f"voo de {origem} para {destino}",
+                )
+                texto_fonte = f"{hit.title} {hit.snippet}"
+                row.update(
+                    {
+                        "companhia": extra.companhia,
+                        "preco": ancora_preco(extra.preco, texto_fonte),
+                        "moeda": extra.moeda or "BRL",
+                        "horario": extra.horario,
+                        "confianca": extra.confianca,
+                    }
+                )
+                if row["preco"] is None and extra.confianca == "alta":
+                    row["confianca"] = "media"
+            rows.append(row)
+        return rows

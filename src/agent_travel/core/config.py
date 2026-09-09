@@ -8,6 +8,7 @@ class Settings(BaseSettings):
     llm_model: str = "gpt-4o-mini"
     max_tool_iters: int = 6
     session_ttl_seconds: int = 3600
+    session_db_dir: str = ".data"
 
 
 settings = Settings()

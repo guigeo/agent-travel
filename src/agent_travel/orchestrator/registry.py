@@ -11,8 +11,8 @@ from agent_travel.core.tool_registry import ToolRegistry
 from agent_travel.web_search.client import WebSearchClient
 
 _search_client = WebSearchClient()
-_voos_backend = VoosBackend(_search_client)
-_hospedagem_backend = HospedagemBackend(_search_client)
+_voos_backend = VoosBackend(_search_client, get_client)
+_hospedagem_backend = HospedagemBackend(_search_client, get_client)
 
 
 def _montar_roteiro(args: MontarRoteiroArgs):

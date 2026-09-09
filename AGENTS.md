@@ -71,7 +71,8 @@ Variáveis disponíveis no `.env`:
 - `LLM_PROVIDER_API_KEY`: chave usada pelo cliente OpenAI;
 - `LLM_MODEL`: modelo utilizado, com padrão `gpt-4o-mini`;
 - `MAX_TOOL_ITERS`: limite de iterações de tool-calling, com padrão `6`;
-- `SESSION_TTL_SECONDS`: TTL das sessões em memória, com padrão `3600`.
+- `SESSION_TTL_SECONDS`: TTL das sessões, com padrão `3600`;
+- `SESSION_DB_DIR`: diretório dos arquivos SQLite de sessão, com padrão `.data`.
 
 Prepare o frontend:
 
@@ -137,14 +138,18 @@ frontend. Não há um type checker separado configurado para o backend.
 - `POST /chat/{session_id}`: conversa com o Planejador de Viagens;
 - `POST /miles/query/{session_id}`: conversa com o Agente de Milhas.
 
-O frontend cria identificadores de sessão independentes para cada aba. No backend, cada agente
-também possui seu próprio `SessionStore`. As sessões ficam somente em memória, expiram por TTL e
-não sobrevivem à reinicialização do processo.
+Com `Accept: text/event-stream`, as rotas de conversa emitem SSE (`tool_started`,
+`tool_finished`, `texto_final`). Sem esse header, devolvem JSON como antes.
+
+O frontend guarda identificadores de sessão independentes no `localStorage` para cada aba. No
+backend, cada agente possui seu próprio store SQLite (arquivos em `SESSION_DB_DIR`). As sessões
+expiram por TTL. Testes usam `SessionStore` em memória.
 
 ### Motor compartilhado de LLM
 
-`core/loop.py` implementa o loop reutilizável de tool-calling. Cada turno recebe um cliente LLM,
-uma sessão, um `ToolRegistry`, um system prompt e a pergunta do usuário. O loop:
+`core/loop.py` implementa o loop reutilizável de tool-calling. `run_turn` devolve a resposta
+completa; `iter_turn` emite o progresso de cada tool. Cada turno recebe um cliente LLM, uma
+sessão, um `ToolRegistry`, um system prompt e a pergunta do usuário. O loop:
 
 1. adiciona a pergunta ao histórico;
 2. envia ao modelo o prompt, o histórico e os schemas das tools;
@@ -166,8 +171,11 @@ cards do frontend.
 - `montar_roteiro`;
 - `calcular_orcamento`.
 
-Voos e hospedagens usam `WebSearchClient` e retornam título, trecho e URL da fonte. O orçamento é
-um cálculo determinístico. O roteiro faz uma chamada adicional ao LLM com um prompt específico.
+Voos, hospedagens e bônus usam `WebSearchClient`, filtram fontes preferidas
+(`web_search/ranking.py`) e extraem campos só quando o número aparece no trecho
+(`web_search/extraction.py`). O orçamento é um cálculo determinístico e soma apenas
+itens com preço extraído; o restante fica como a confirmar. O roteiro faz uma chamada
+adicional ao LLM e devolve dias estruturados para o card do frontend.
 
 ### Agente de Milhas
 
@@ -185,8 +193,9 @@ teste.
 `frontend/src/App.tsx` apresenta duas abas, cada uma com seu próprio chat. O cliente HTTP está em
 `frontend/src/lib/api.ts`. `ResultRenderer` escolhe cards específicos conforme o nome da tool:
 
-- listas com fontes para voos, hospedagens e bônus;
-- card de orçamento;
+- cards de recomendação (principal e alternativa) para voos, hospedagens e bônus;
+- card de roteiro dia a dia;
+- card de orçamento (total parcial quando houver item a confirmar);
 - card de valor dos pontos.
 
 Ao criar uma nova tool cujo resultado deva aparecer como card, mantenha o contrato da API e
@@ -200,7 +209,8 @@ adicione o renderer correspondente no frontend.
 - Use type hints nas assinaturas Python e models Pydantic para os argumentos das tools.
 - Mantenha a lógica determinística em funções próprias; não delegue cálculos simples ao LLM.
 - Informações atuais de voos, hospedagens e bônus devem vir das tools de busca e incluir
-  `fonte_url`. Não invente preços, disponibilidade ou promoções.
+  `fonte_url`. Preço e percentual só entram no resultado se aparecerem no trecho da fonte.
+  Não invente preços, disponibilidade ou promoções.
 - Preserve a proibição de realizar compras, reservas, pagamentos e transferências.
 - Preserve registries, prompts e stores de sessão separados entre Planejador e Milhas.
 - Para uma nova tool, siga o padrão existente: model `BaseModel`, handler que devolve
@@ -226,7 +236,7 @@ alteradas:
 
 Não dependa da busca DDGS nem de uma API LLM real nos testes automatizados. Ao alterar o motor de
 tool-calling, cubra resposta direta, tool call bem-sucedida, autocorreção após erro, limite de erros,
-limite de iterações e preservação válida do histórico.
+limite de iterações, preservação válida do histórico e emissão de eventos de progresso.
 
 ## Instruções para Agentes
 

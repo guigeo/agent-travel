@@ -1,5 +1,6 @@
 from functools import partial
 
+from agent_travel.core.llm_client import get_client
 from agent_travel.core.tool_registry import ToolRegistry
 from agent_travel.milhas.backend import MilhasBackend
 from agent_travel.milhas.tools import (
@@ -11,7 +12,7 @@ from agent_travel.milhas.tools import (
 from agent_travel.web_search.client import WebSearchClient
 
 _search_client = WebSearchClient()
-_milhas_backend = MilhasBackend(_search_client)
+_milhas_backend = MilhasBackend(_search_client, get_client)
 
 MILES_TOOL_REGISTRY = ToolRegistry(
     {

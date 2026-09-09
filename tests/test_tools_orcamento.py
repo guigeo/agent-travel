@@ -37,3 +37,20 @@ def test_orcamento_sem_limite_maximo_nunca_estoura():
     result = calcular_orcamento(args)
 
     assert result.payload["estourou_orcamento"] is False
+
+
+def test_orcamento_exclui_itens_sem_preco_do_total():
+    args = CalcularOrcamentoArgs(
+        itens=[
+            ItemCusto(descricao="voo", valor=800),
+            ItemCusto(descricao="hotel", a_confirmar=True),
+        ],
+        orcamento_maximo=1500,
+    )
+
+    result = calcular_orcamento(args)
+
+    assert result.payload["total_estimado"] == 800
+    assert result.payload["parcial"] is True
+    assert result.payload["itens_a_confirmar"] == [{"descricao": "hotel"}]
+    assert result.payload["estourou_orcamento"] is False

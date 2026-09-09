@@ -1,4 +1,5 @@
-from dataclasses import dataclass
+from collections.abc import Iterator
+from dataclasses import dataclass, field
 from typing import Any
 
 from agent_travel.core.config import settings
@@ -24,6 +25,31 @@ class Response:
     resultados: list[ResultadoFerramenta]
 
 
+@dataclass
+class TurnEvent:
+    tipo: str
+    ferramenta: str | None = None
+    dados: list[dict] = field(default_factory=list)
+    erro: bool = False
+    texto: str | None = None
+    resultados: list[ResultadoFerramenta] = field(default_factory=list)
+
+    def to_dict(self) -> dict:
+        payload: dict = {"tipo": self.tipo}
+        if self.tipo == "tool_started":
+            payload["ferramenta"] = self.ferramenta
+        elif self.tipo == "tool_finished":
+            payload["ferramenta"] = self.ferramenta
+            payload["dados"] = self.dados
+            payload["erro"] = self.erro
+        elif self.tipo == "texto_final":
+            payload["texto"] = self.texto or ""
+            payload["resultados"] = [
+                {"ferramenta": item.ferramenta, "dados": item.dados} for item in self.resultados
+            ]
+        return payload
+
+
 def run_turn(
     client: Any, session: Session, registry: ToolRegistry, system_prompt: str, pergunta: str
 ) -> Response:
@@ -33,6 +59,19 @@ def run_turn(
     Milhas — cada chamador injeta seu próprio system_prompt, ToolRegistry e
     Session, sem nenhum acoplamento entre os dois.
     """
+    final: TurnEvent | None = None
+    for event in iter_turn(client, session, registry, system_prompt, pergunta):
+        if event.tipo == "texto_final":
+            final = event
+    if final is None:
+        return Response(texto="", resultados=[])
+    return Response(texto=final.texto or "", resultados=list(final.resultados))
+
+
+def iter_turn(
+    client: Any, session: Session, registry: ToolRegistry, system_prompt: str, pergunta: str
+) -> Iterator[TurnEvent]:
+    """Mesmo loop de `run_turn`, emitindo progresso de cada tool antes da resposta final."""
     session.messages.append({"role": "user", "content": pergunta})
     resultados: list[ResultadoFerramenta] = []
     erros = 0
@@ -48,27 +87,44 @@ def run_turn(
 
         if not msg.tool_calls:
             _trim(session)
-            return Response(texto=msg.content or "", resultados=resultados)
+            yield TurnEvent(tipo="texto_final", texto=msg.content or "", resultados=resultados)
+            return
 
         for call in msg.tool_calls:
+            yield TurnEvent(tipo="tool_started", ferramenta=call.function.name)
             result = registry.execute_tool(call.function.name, call.function.arguments)
             session.messages.append(
                 {"role": "tool", "tool_call_id": call.id, "content": result.payload_json}
             )
             if result.error:
                 erros += 1
+                yield TurnEvent(
+                    tipo="tool_finished",
+                    ferramenta=call.function.name,
+                    erro=True,
+                )
                 if erros >= 2:
                     _trim(session)
-                    return Response(texto=MSG_ERRO_AMIGAVEL, resultados=resultados)
-            elif result.ids:
-                # Acumula por ferramenta (não sobrescreve) — cada tool chamada no turno
-                # vira seu próprio card no frontend, em vez de só a última sobreviver.
-                resultados.append(
-                    ResultadoFerramenta(ferramenta=call.function.name, dados=result.rows)
+                    yield TurnEvent(
+                        tipo="texto_final", texto=MSG_ERRO_AMIGAVEL, resultados=resultados
+                    )
+                    return
+            else:
+                yield TurnEvent(
+                    tipo="tool_finished",
+                    ferramenta=call.function.name,
+                    dados=list(result.rows),
+                    erro=False,
                 )
+                if result.ids:
+                    # Acumula por ferramenta (não sobrescreve) — cada tool chamada no turno
+                    # vira seu próprio card no frontend, em vez de só a última sobreviver.
+                    resultados.append(
+                        ResultadoFerramenta(ferramenta=call.function.name, dados=result.rows)
+                    )
 
     _trim(session)
-    return Response(texto=MSG_LIMITE_ITERACOES, resultados=resultados)
+    yield TurnEvent(tipo="texto_final", texto=MSG_LIMITE_ITERACOES, resultados=resultados)
 
 
 def _assistant_dict(msg: Any) -> dict:

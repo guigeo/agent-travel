@@ -5,7 +5,9 @@ from agent_travel.core.tool_registry import ToolResult
 
 
 class BuscarVoosArgs(BaseModel):
-    """Busca voos entre origem e destino em datas específicas (ida e volta opcional)."""
+    """Busca fontes confiáveis de passagens e devolve no máximo duas opções (principal e
+    alternativa), com preço somente se ele aparecer no trecho da fonte. Use o resultado
+    para montar UMA recomendação — não é inventário de voos."""
 
     origem: str = Field(description="Cidade ou aeroporto de origem")
     destino: str = Field(description="Cidade ou aeroporto de destino")

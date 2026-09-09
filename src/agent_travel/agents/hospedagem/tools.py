@@ -5,7 +5,9 @@ from agent_travel.core.tool_registry import ToolResult
 
 
 class BuscarHospedagemArgs(BaseModel):
-    """Busca opções de hospedagem em um destino para um período específico."""
+    """Busca fontes confiáveis de hospedagem e devolve no máximo duas opções (principal e
+    alternativa), com preço somente se ele aparecer no trecho da fonte. Use para montar
+    UMA recomendação — não é inventário de hotéis."""
 
     destino: str = Field(description="Cidade ou região onde buscar hospedagem")
     data_checkin: str = Field(description="Data de check-in no formato YYYY-MM-DD")

@@ -11,9 +11,11 @@ interface ItemCusto {
 
 export interface OrcamentoRow {
   itens: ItemCusto[];
+  itens_a_confirmar?: { descricao: string }[];
   total_estimado: number;
   orcamento_maximo: number | null;
   estourou_orcamento: boolean;
+  parcial?: boolean;
 }
 
 function formatReais(valor: number) {
@@ -21,6 +23,8 @@ function formatReais(valor: number) {
 }
 
 export function BudgetCard({ row }: { row: OrcamentoRow }) {
+  const aConfirmar = row.itens_a_confirmar ?? [];
+
   return (
     <Card className="gap-3 py-4">
       <CardHeader className="px-4">
@@ -37,12 +41,21 @@ export function BudgetCard({ row }: { row: OrcamentoRow }) {
               <span>{formatReais(item.valor)}</span>
             </div>
           ))}
+          {aConfirmar.map((item, index) => (
+            <div
+              key={`confirmar-${item.descricao}-${index}`}
+              className="flex items-center justify-between text-sm"
+            >
+              <span className="text-muted-foreground">{item.descricao}</span>
+              <span className="text-muted-foreground">a confirmar</span>
+            </div>
+          ))}
         </div>
 
         <Separator />
 
         <div className="flex items-center justify-between text-sm font-medium">
-          <span>Total estimado</span>
+          <span>{row.parcial ? "Total parcial" : "Total estimado"}</span>
           <span>{formatReais(row.total_estimado)}</span>
         </div>
 
@@ -51,6 +64,12 @@ export function BudgetCard({ row }: { row: OrcamentoRow }) {
             <span>Orçamento máximo</span>
             <span>{formatReais(row.orcamento_maximo)}</span>
           </div>
+        )}
+
+        {row.parcial && (
+          <p className="text-xs text-muted-foreground">
+            Itens sem preço na fonte ficaram de fora do total.
+          </p>
         )}
 
         {row.orcamento_maximo != null && (

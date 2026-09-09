@@ -2,7 +2,12 @@ from conftest import FakeClient, texto, tool_call
 from pydantic import BaseModel, Field
 
 from agent_travel.core.config import settings
-from agent_travel.core.loop import MSG_ERRO_AMIGAVEL, MSG_LIMITE_ITERACOES, run_turn
+from agent_travel.core.loop import (
+    MSG_ERRO_AMIGAVEL,
+    MSG_LIMITE_ITERACOES,
+    iter_turn,
+    run_turn,
+)
 from agent_travel.core.session import SessionStore
 from agent_travel.core.tool_registry import ToolRegistry, ToolResult
 
@@ -85,3 +90,14 @@ def test_multi_turno_preserva_historico():
     run_turn(client, store.get("s1"), REGISTRY, "system", "segunda pergunta")
     ultimas = client.requests[-1]["messages"]
     assert any("primeira pergunta" in (m.get("content") or "") for m in ultimas)
+
+
+def test_iter_turn_emite_progresso_das_tools(nova_sessao):
+    client = FakeClient([tool_call("listar_opcoes", {"metrica": "total"}), texto("A opção é X.")])
+    eventos = list(iter_turn(client, nova_sessao, REGISTRY, "system", "quais opções?"))
+    tipos = [evento.tipo for evento in eventos]
+    assert tipos == ["tool_started", "tool_finished", "texto_final"]
+    assert eventos[0].ferramenta == "listar_opcoes"
+    assert eventos[1].dados == [{"id": "1", "valor": 10}]
+    assert eventos[2].texto == "A opção é X."
+    assert eventos[2].resultados[0].ferramenta == "listar_opcoes"

@@ -5,8 +5,9 @@ from agent_travel.milhas.backend import MilhasBackend
 
 
 class BuscarBonusArgs(BaseModel):
-    """Busca promoções vigentes de bônus de transferência de pontos Itaú (via Livelo/Iupp)
-    para programas de milhas."""
+    """Busca fontes públicas de bônus de transferência Itaú/Livelo e devolve no máximo
+    duas opções (principal e alternativa). O percentual só vem preenchido se aparecer
+    no trecho da fonte. Use para recomendar, não para listar links."""
 
     programa_destino: str | None = Field(
         None,

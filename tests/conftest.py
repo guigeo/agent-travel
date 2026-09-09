@@ -3,7 +3,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from agent_travel.core.session import Session
+from agent_travel.core.session import Session, SessionStore
 
 
 def texto(content: str) -> SimpleNamespace:
@@ -35,6 +35,12 @@ class FakeClient:
     def _create(self, **kwargs):
         self.requests.append(kwargs)
         return SimpleNamespace(choices=[SimpleNamespace(message=self.script.pop(0))], usage=None)
+
+
+@pytest.fixture(autouse=True)
+def stores_em_memoria(monkeypatch):
+    monkeypatch.setattr("agent_travel.api.routes.chat._session_store", SessionStore())
+    monkeypatch.setattr("agent_travel.api.routes.miles._session_store", SessionStore())
 
 
 @pytest.fixture

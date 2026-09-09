@@ -63,6 +63,29 @@ def test_happy_path_planeja_viagem_sem_mencionar_milhas(monkeypatch):
     assert resultados_por_ferramenta["calcular_orcamento"][0]["total_estimado"] == 800
 
 
+def test_chat_sse_emite_eventos_de_progresso(monkeypatch):
+    fake_client = FakeClient(
+        [texto("Recomendo essa opção, mas a compra deve ser feita por você no site oficial.")]
+    )
+    monkeypatch.setattr("agent_travel.orchestrator.registry.get_client", lambda: fake_client)
+    app.dependency_overrides[get_client] = lambda: fake_client
+
+    try:
+        client = TestClient(app)
+        response = client.post(
+            "/chat/sessao-sse",
+            json={"mensagem": "oi"},
+            headers={"Accept": "text/event-stream"},
+        )
+    finally:
+        app.dependency_overrides.clear()
+
+    assert response.status_code == 200
+    assert response.headers["content-type"].startswith("text/event-stream")
+    assert "event: texto_final" in response.text
+    assert "site oficial" in response.text
+
+
 def test_limite_de_escopo_nao_finaliza_compra(monkeypatch):
     fake_client = FakeClient(
         [texto("Recomendo essa opção, mas a compra deve ser feita por você no site oficial.")]

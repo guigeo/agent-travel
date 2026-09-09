@@ -2,18 +2,19 @@ import { useMemo } from "react";
 import { Coins, Plane } from "lucide-react";
 
 import { sendChatMessage, sendMilesQuery } from "@/lib/api";
+import { loadSessionId } from "@/lib/session";
 import { ChatPanel } from "@/components/chat-panel";
 import { ModeToggle } from "@/components/mode-toggle";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Toaster } from "@/components/ui/sonner";
 
-function useSessionId() {
-  return useMemo(() => crypto.randomUUID(), []);
+function usePersistedSessionId(key: string) {
+  return useMemo(() => loadSessionId(key), [key]);
 }
 
 function App() {
-  const chatSessionId = useSessionId();
-  const milesSessionId = useSessionId();
+  const chatSessionId = usePersistedSessionId("planner");
+  const milesSessionId = usePersistedSessionId("miles");
 
   return (
     <div className="min-h-svh bg-background text-foreground">
@@ -43,6 +44,7 @@ function App() {
           <TabsContent value="planejador" className="mt-4">
             <ChatPanel
               sessionId={chatSessionId}
+              storageKey="planner"
               onSend={sendChatMessage}
               placeholder="Ex: quero ir de São Paulo ao Rio em 2026-09-10, orçamento R$1500"
               agentLabel="o Planejador de viagem"
@@ -59,6 +61,7 @@ function App() {
           <TabsContent value="milhas" className="mt-4">
             <ChatPanel
               sessionId={milesSessionId}
+              storageKey="miles"
               onSend={sendMilesQuery}
               placeholder="Ex: vale a pena trocar meus pontos Itaú agora?"
               agentLabel="o Agente de Milhas"
