@@ -1,6 +1,7 @@
 from collections.abc import Callable
 from typing import Any
 
+from agent_travel.agents.links import link_busca_hospedagem
 from agent_travel.web_search.client import WebSearchClient
 from agent_travel.web_search.extraction import ExtracaoHospedagem, ancora_preco, extrair
 from agent_travel.web_search.ranking import com_papel, selecionar_fontes
@@ -41,6 +42,9 @@ class HospedagemBackend:
                 "resumo": hit.title,
                 "trecho": hit.snippet,
                 "fonte_url": hit.url,
+                "continuar_busca_url": link_busca_hospedagem(
+                    destino, data_checkin, data_checkout, hospedes
+                ),
                 "nome": None,
                 "bairro": None,
                 "preco": None,

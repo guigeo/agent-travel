@@ -1,6 +1,7 @@
 from collections.abc import Callable
 from typing import Any
 
+from agent_travel.agents.links import link_busca_voo
 from agent_travel.web_search.client import WebSearchClient
 from agent_travel.web_search.extraction import ExtracaoVoo, ancora_preco, extrair
 from agent_travel.web_search.ranking import com_papel, selecionar_fontes
@@ -42,6 +43,7 @@ class VoosBackend:
                 "resumo": hit.title,
                 "trecho": hit.snippet,
                 "fonte_url": hit.url,
+                "continuar_busca_url": link_busca_voo(origem, destino, data_ida, data_volta),
                 "companhia": None,
                 "preco": None,
                 "moeda": None,
