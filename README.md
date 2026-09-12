@@ -9,7 +9,8 @@ Assistente de viagens full-stack baseado em LLM, com dois fluxos de conversa ind
 O projeto é um MVP de recomendação. Ele não efetua compras, reservas, pagamentos ou
 transferências. A busca na web é só o insumo: o assistente devolve no máximo duas opções
 (principal e alternativa), com preço ou percentual somente quando o número aparece no trecho da
-fonte. O restante fica como valor a confirmar no site oficial.
+fonte. Os cards de voo e hospedagem levam a uma busca com os critérios da viagem no Google
+Flights e Booking.com; o restante fica como valor a confirmar no fornecedor.
 
 ## Como funciona
 
@@ -89,8 +90,10 @@ npm --prefix frontend run dev
 Abra a URL informada pelo Vite no terminal. A documentação interativa da API fica disponível em
 `http://localhost:8000/docs`.
 
-O frontend guarda a sessão no `localStorage`. O backend persiste o histórico em SQLite em
-`.data/` (ignorado pelo git), com TTL.
+O frontend guarda a sessão e as escolhas de “Minha viagem” no `localStorage`. O backend persiste
+o histórico em SQLite em `.data/` (ignorado pelo git), com TTL. O painel permite escolher voo,
+hospedagem, roteiro e orçamento; o link de compartilhamento carrega o plano no próprio endereço,
+sem criar conta ou enviar dados a um serviço externo.
 
 ## API
 
@@ -169,8 +172,10 @@ ou à busca web.
 - disponibilidade e tarifa final precisam ser confirmados no site oficial;
 - não há autenticação nem contas de usuário;
 - o sistema recomenda opções, mas não conclui transações;
-- ainda não há um plano de viagem persistido além do histórico do chat (escolher no card e
-  manter um painel “Sua viagem” fica para a próxima evolução).
+- o plano “Minha viagem” é local ao navegador; não há contas, sincronização entre dispositivos ou
+  colaboração com edição simultânea;
+- o compartilhamento por link inclui o conteúdo do plano no endereço, portanto não é indicado
+  para dados pessoais ou roteiros muito extensos.
 
 ## Instruções para agentes de código
 
