@@ -26,6 +26,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ResultRenderer } from "@/components/results/result-renderer";
+import { TripBriefForm } from "@/components/trip-brief-form";
+import type { TripBrief, TripItemKind } from "@/lib/trip";
 
 interface Message {
   id: string;
@@ -44,6 +46,11 @@ interface ChatPanelProps {
   emptyDescription: string;
   agentIcon: ReactNode;
   agentLabel: string;
+  onBriefSubmit?: (brief: TripBrief) => void;
+  selectedItemId?: (tipo: TripItemKind) => string | undefined;
+  onAddToTrip?: (tipo: TripItemKind, titulo: string, dados: Record<string, unknown>) => void;
+  viajantes?: number;
+  draftMessage?: string;
   onSend: (
     sessionId: string,
     mensagem: string,
@@ -71,6 +78,11 @@ export function ChatPanel({
   agentIcon,
   agentLabel,
   onSend,
+  onBriefSubmit,
+  selectedItemId,
+  onAddToTrip,
+  viajantes,
+  draftMessage,
 }: ChatPanelProps) {
   const [messages, setMessages] = useState<Message[]>(() => restoreMessages(storageKey));
   const [input, setInput] = useState("");
@@ -84,6 +96,10 @@ export function ChatPanel({
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isSending]);
+
+  useEffect(() => {
+    if (draftMessage) setInput(draftMessage);
+  }, [draftMessage]);
 
   async function submit(mensagem: string) {
     const trimmed = mensagem.trim();
@@ -135,6 +151,11 @@ export function ChatPanel({
     void submit(input);
   }
 
+  function handleBriefSubmit(mensagem: string, brief: TripBrief) {
+    onBriefSubmit?.(brief);
+    void submit(mensagem);
+  }
+
   return (
     <div className="flex h-[65vh] flex-col overflow-hidden rounded-xl border bg-card">
       <ScrollArea className="min-h-0 flex-1 px-4">
@@ -160,6 +181,7 @@ export function ChatPanel({
                   </button>
                 ))}
               </div>
+              {onBriefSubmit && <TripBriefForm onSubmit={handleBriefSubmit} />}
             </div>
           )}
 
@@ -207,7 +229,13 @@ export function ChatPanel({
                 {message.resultados && message.resultados.length > 0 && (
                   <div className="flex w-full flex-col gap-2">
                     {message.resultados.map((resultado, index) => (
-                      <ResultRenderer key={`${resultado.ferramenta}-${index}`} resultado={resultado} />
+                      <ResultRenderer
+                        key={`${resultado.ferramenta}-${index}`}
+                        resultado={resultado}
+                        selectedItemId={selectedItemId}
+                        onAddToTrip={onAddToTrip}
+                        viajantes={viajantes}
+                      />
                     ))}
                   </div>
                 )}

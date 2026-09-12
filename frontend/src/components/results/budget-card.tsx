@@ -1,8 +1,9 @@
-import { AlertTriangle, CheckCircle2, Wallet } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Plus, Wallet } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { Button } from "@/components/ui/button";
 
 interface ItemCusto {
   descricao: string;
@@ -22,7 +23,15 @@ function formatReais(valor: number) {
   return valor.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 }
 
-export function BudgetCard({ row }: { row: OrcamentoRow }) {
+export function BudgetCard({
+  row,
+  viajantes,
+  onAdd,
+}: {
+  row: OrcamentoRow;
+  viajantes?: number;
+  onAdd?: () => void;
+}) {
   const aConfirmar = row.itens_a_confirmar ?? [];
 
   return (
@@ -59,6 +68,13 @@ export function BudgetCard({ row }: { row: OrcamentoRow }) {
           <span>{formatReais(row.total_estimado)}</span>
         </div>
 
+        {viajantes && viajantes > 1 && (
+          <div className="flex items-center justify-between text-xs text-muted-foreground">
+            <span>Por pessoa ({viajantes} viajantes)</span>
+            <span>{formatReais(row.total_estimado / viajantes)}</span>
+          </div>
+        )}
+
         {row.orcamento_maximo != null && (
           <div className="flex items-center justify-between text-xs text-muted-foreground">
             <span>Orçamento máximo</span>
@@ -84,6 +100,19 @@ export function BudgetCard({ row }: { row: OrcamentoRow }) {
             )}
             {row.estourou_orcamento ? "Orçamento estourado" : "Dentro do orçamento"}
           </Badge>
+        )}
+
+        {row.total_estimado > 0 && (
+          <div className="rounded-md bg-muted/60 p-2 text-xs text-muted-foreground">
+            <p className="font-medium text-foreground">Cenários com reserva</p>
+            <p>Essencial: {formatReais(row.total_estimado)} · Equilibrado: {formatReais(row.total_estimado * 1.1)} · Confortável: {formatReais(row.total_estimado * 1.2)}</p>
+          </div>
+        )}
+
+        {onAdd && (
+          <Button type="button" variant="outline" size="sm" className="w-fit" onClick={onAdd}>
+            <Plus /> Adicionar à viagem
+          </Button>
         )}
       </CardContent>
     </Card>

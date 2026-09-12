@@ -21,6 +21,12 @@ export function persistSessionId(key: string, sessionId: string): void {
   }
 }
 
+export function createSessionId(key: string): string {
+  const sessionId = crypto.randomUUID();
+  persistSessionId(key, sessionId);
+  return sessionId;
+}
+
 export function loadMessages<T>(key: string): T[] {
   try {
     const raw = localStorage.getItem(`${MESSAGES_PREFIX}${key}`);
@@ -35,6 +41,14 @@ export function loadMessages<T>(key: string): T[] {
 export function persistMessages(key: string, messages: unknown): void {
   try {
     localStorage.setItem(`${MESSAGES_PREFIX}${key}`, JSON.stringify(messages));
+  } catch {
+    /* quota / private mode */
+  }
+}
+
+export function clearMessages(key: string): void {
+  try {
+    localStorage.removeItem(`${MESSAGES_PREFIX}${key}`);
   } catch {
     /* quota / private mode */
   }

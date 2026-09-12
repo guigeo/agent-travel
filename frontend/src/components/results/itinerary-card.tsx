@@ -1,7 +1,8 @@
-import { MapPin } from "lucide-react";
+import { ExternalLink, MapPin, Plus } from "lucide-react";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { Button } from "@/components/ui/button";
 
 interface DiaRoteiro {
   dia?: unknown;
@@ -13,7 +14,7 @@ export interface RoteiroRow {
   dias?: unknown;
 }
 
-export function ItineraryCard({ row }: { row: RoteiroRow }) {
+export function ItineraryCard({ row, onAdd }: { row: RoteiroRow; onAdd?: () => void }) {
   const destino = typeof row.destino === "string" ? row.destino : undefined;
   const dias = Array.isArray(row.dias) ? (row.dias as DiaRoteiro[]) : [];
 
@@ -37,12 +38,26 @@ export function ItineraryCard({ row }: { row: RoteiroRow }) {
               <p className="text-xs font-medium text-muted-foreground">Dia {numero}</p>
               <ul className="mt-1 list-disc space-y-1 pl-4 text-sm">
                 {atividades.map((atividade, atividadeIndex) => (
-                  <li key={`${numero}-${atividadeIndex}`}>{atividade}</li>
+                  <li key={`${numero}-${atividadeIndex}`}>
+                    <a
+                      href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${atividade} ${destino ?? ""}`)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 hover:text-primary hover:underline"
+                    >
+                      {atividade} <ExternalLink className="size-3" />
+                    </a>
+                  </li>
                 ))}
               </ul>
             </div>
           );
         })}
+        {onAdd && (
+          <Button type="button" variant="outline" size="sm" className="w-fit" onClick={onAdd}>
+            <Plus /> Adicionar à viagem
+          </Button>
+        )}
       </CardContent>
     </Card>
   );
